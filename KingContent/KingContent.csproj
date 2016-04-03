@@ -48,6 +48,7 @@
     <Compile Include="Schema\Colum.cs" />
     <Compile Include="Schema\DataType.cs" />
     <Compile Include="Schema\Schema.cs" />
+    <Compile Include="Schema\SchemaUtils.cs" />
     <Compile Include="Schema\Table.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extension\StringExtensions.cs" />
