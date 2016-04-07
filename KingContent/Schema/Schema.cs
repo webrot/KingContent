@@ -5,7 +5,7 @@ using System.Linq;
 using System.Xml.Serialization;
 
 
-namespace KingContent
+namespace KingContent.Schema
 { 
     public interface ISchemaBuilderCommand
     {
@@ -31,7 +31,35 @@ namespace KingContent
             return this;
         }
     }
+    public class CreateForeignKeyCommand : SchemaCommand
+    {
+        public string[] DestColumns { get; private set; }
 
+        public string DestTable { get; private set; }
+
+        public string[] SrcColumns { get; private set; }
+
+        public string SrcTable { get; private set; }
+
+        public CreateForeignKeyCommand(string name, string srcTable, string[] srcColumns, string destTable, string[] destColumns) : base(name, SchemaCommandType.CreateForeignKey)
+        {
+            SrcColumns = srcColumns;
+            DestTable = destTable;
+            DestColumns = destColumns;
+            SrcTable = srcTable;
+        }
+    }
+
+    public class DropForeignKeyCommand : SchemaCommand
+    {
+        public string SrcTable { get; private set; }
+
+        public DropForeignKeyCommand(string srcTable, string name)
+            : base(name, SchemaCommandType.DropForeignKey)
+        {
+            SrcTable = srcTable;
+        }
+    }
     public enum SchemaCommandType
     {
         CreateTable,

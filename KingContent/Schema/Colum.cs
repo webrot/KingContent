@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Data;
 
-namespace KingContent
+namespace KingContent.Schema
 {
     public class ColumnCommand : TableCommand
     {
