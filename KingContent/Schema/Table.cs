@@ -1,149 +1,165 @@
 ﻿using System;
 using System.Data;
+using System.Collections.Generic;
 
 namespace KingContent.Schema
 {
-    public class TableCommand : ISchemaBuilderCommand
+    public class ForeignKeySchema
     {
-        public string TableName { get; private set; }
+        public string Name { get; private set; }
+        public string[] DestColumns { get; private set; }
 
-        public TableCommand(string tableName)
+        public string DestTable { get; private set; }
+
+        public string[] SrcColumns { get; private set; }
+
+        public string SrcTable { get; private set; }
+
+        public ForeignKeySchema(string name, string srcTable, string[] srcColumns, string destTable, string[] destColumns) 
         {
+            Name = name;
+            SrcColumns = srcColumns;
+            DestTable = destTable;
+            DestColumns = destColumns;
+            SrcTable = srcTable;
+        }
+    }
+    public class TableSchema
+    {
+        public string TableName { get; set; }
+
+        public TableSchema(string tableName)
+        {
+            Columns = new List<Column>();
             TableName = tableName;
-        }  
-    }
-    public class AlterTableCommand : SchemaCommand
-    {
-        public AlterTableCommand(string name)
-            : base(name, SchemaCommandType.AlterTable)
-        {
         }
+        public List<Column> Columns { get; private set; }
 
-        public void AddColumn(string columnName, DbType dbType, Action<AddColumnCommand> column = null)
+        #region override object
+        public static bool operator ==(TableSchema obj1, TableSchema obj2)
         {
-            var command = new AddColumnCommand(Name, columnName);
-            command.WithType(dbType);
-
-            if (column != null)
+            if (object.Equals(obj1, obj2) == true)
             {
-                column(command);
+                return true;
             }
+            if (object.Equals(obj1, null) == true || object.Equals(obj2, null) == true)
+            {
+                return false;
+            }
+            return obj1.Equals(obj2);
+        }
+        public static bool operator !=(TableSchema obj1, TableSchema obj2)
+        {
+            return !(obj1 == obj2);
+        }
+        public override bool Equals(object obj)
+        {
+            if (!(obj is TableSchema))
+            {
+                return false;
+            }
+            if (obj != null)
+            {
+                var table = (TableSchema)obj;
+                if ( string.Compare(this.TableName, table.TableName, true) == 0)
+                {
+                    return true;
+                }
+            }
+            return base.Equals(obj);
+        }
+        public override int GetHashCode()
+        { 
+            if (string.IsNullOrEmpty(this.TableName))
+            {
+                return base.GetHashCode();
+            }
+            else
+            {
+                return this.TableName.ToLower().GetHashCode();
+            } 
+        }
+        public override string ToString()
+        {
+            return this.TableName;
+        }
+        #endregion
 
-            TableCommands.Add(command);
+        public TableSchema DeepClone()
+        {
+            var table = (TableSchema)this.MemberwiseClone();
+            if (this.Columns != null)
+            {
+                table.Columns = new List<Column>();
+
+                foreach (var item in this.Columns)
+                {
+                    table.Columns.Add(item.DeepClone());
+                }
+            }
+            return table;
+        }
+    }
+
+    public static class TableExtensions
+    {
+        public static TableSchema AddColumn(this TableSchema table, string columnName,  Action<Column> columnfun = null)
+        {
+            var column = new Column(columnName);
+            if (columnfun != null)
+            {
+                columnfun(column);
+            }
+            table.Columns.Add(column);
+            return table;
+        }
+        public static TableSchema AddColumn(this TableSchema table, string columnName, DbType dbType, Action<Column> columnfun = null)
+        {
+            var column = new Column(columnName);
+            column.WithType(dbType);
+            if (columnfun != null)
+            {
+                columnfun(column);
+            }
+            table.Columns.Add(column);
+            return table;
         }
 
-        public void AddColumn<T>(string columnName, Action<AddColumnCommand> column = null)
+        public static TableSchema AddColumn<T>(this TableSchema table, string columnName, Action<Column> columnfun = null)
         {
             var dbType = SchemaUtils.ToDbType(typeof(T));
-            AddColumn(columnName, dbType, column);
+            return table.AddColumn(columnName, dbType, columnfun); 
+        }
+         
+
+        public static TableSchema DropColumn(this TableSchema table, string columnName)
+        {
+            int index = table.Columns.FindIndex(i => i.ColumnName.Equals(columnName));
+            table.Columns.RemoveAt(index);
+            return table;
         }
 
-        public void DropColumn(string columnName)
+        public static TableSchema AlterColumn<T>(this TableSchema table,string columnName, Action<Column> columnfun)
         {
-            var command = new DropColumnCommand(Name, columnName);
-            TableCommands.Add(command);
-        }
-
-        public void AlterColumn(string columnName, Action<AlterColumnCommand> column = null)
-        {
-            var command = new AlterColumnCommand(Name, columnName);
-
-            if (column != null)
+            Column column = table.Columns.Find(i => i.ColumnName.Equals(columnName));
+            if (column != default(Column))
             {
-                column(command);
+                var dbType = SchemaUtils.ToDbType(typeof(T));
+                column.WithType(dbType);
+                columnfun(column);
             }
-
-            TableCommands.Add(command);
+            return table;
         }
-
-        public void CreateIndex(string indexName, params string[] columnNames)
+        public static TableSchema AlterColumn(this TableSchema table, string columnName, Action<Column> columnfun)
         {
-            var command = new AddIndexCommand(Name, indexName, columnNames);
-            TableCommands.Add(command);
-        }
-
-        public void DropIndex(string indexName)
-        {
-            var command = new DropIndexCommand(Name, indexName);
-            TableCommands.Add(command);
-        }
-    }
-
-    public class CreateTableCommand : SchemaCommand
-    {
-        public CreateTableCommand(string name)
-            : base(name, SchemaCommandType.CreateTable)
-        {
-        }
-
-        public CreateTableCommand Column(string columnName, DbType dbType, Action<CreateColumnCommand> column = null)
-        {
-            var command = new CreateColumnCommand(Name, columnName);
-            command.WithType(dbType);
-
-            if (column != null)
+            Column column = table.Columns.Find(i => i.ColumnName.Equals(columnName));
+            if (column != default(Column))
             {
-                column(command);
+                columnfun(column);
             }
-            TableCommands.Add(command);
-            return this;
+            return table;
         }
-
-        public CreateTableCommand Column<T>(string columnName, Action<CreateColumnCommand> column = null)
-        {
-            var dbType = SchemaUtils.ToDbType(typeof(T));
-            return Column(columnName, dbType, column);
-        }
-
-        /// <summary>
-        /// Defines a primary column as for content parts
-        /// </summary>
-        public CreateTableCommand ContentPartRecord()
-        {
-            Column<int>("Id", column => column.PrimaryKey().NotNull());
-
-            return this;
-        }
-
-        /// <summary>
-        /// Defines a primary column as for versionnable content parts
-        /// </summary>
-        public CreateTableCommand ContentPartVersionRecord()
-        {
-            Column<int>("Id", column => column.PrimaryKey().NotNull());
-            Column<int>("ContentItemRecord_id");
-            return this;
-        } 
-    }
-    public class DropTableCommand : SchemaCommand
-    {
-        public DropTableCommand(string name)
-            : base(name, SchemaCommandType.DropTable)
-        {
-        }
-    }
-    public class AddIndexCommand : TableCommand
-    {
-        public string IndexName { get; set; }
-
-        public AddIndexCommand(string tableName, string indexName, params string[] columnNames)
-            : base(tableName)
-        {
-            ColumnNames = columnNames;
-            IndexName = indexName;
-        }
-
-        public string[] ColumnNames { get; private set; }
-    }
-    public class DropIndexCommand : TableCommand
-    {
-        public string IndexName { get; set; }
-
-        public DropIndexCommand(string tableName, string indexName)
-            : base(tableName)
-        {
-            IndexName = indexName;
-        }
-    }
+                 
+    } 
 
 }

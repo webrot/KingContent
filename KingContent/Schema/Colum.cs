@@ -5,197 +5,197 @@ using System.Data;
 
 namespace KingContent.Schema
 {
-    public class ColumnCommand : TableCommand
+    public class Column
     {
-        public string ColumnName { get; set; }
-
-        public ColumnCommand(string tableName, string name)
-            : base(tableName)
+        public Column(string name)
         {
             ColumnName = name;
             DbType = DbType.Object;
             Default = null;
             Length = null;
-        }
-        public byte Scale { get; protected set; }
-
-        public byte Precision { get; protected set; }
-
-        public DbType DbType { get; private set; }
-
-        public object Default { get; private set; }
-
-        public int? Length { get; private set; }
-
-        public ColumnCommand WithType(DbType dbType)
-        {
-            DbType = dbType;
-            return this;
-        }
-
-        public ColumnCommand WithDefault(object @default)
-        {
-            Default = @default;
-            return this;
-        }
-
-
-        public ColumnCommand WithLength(int? length)
-        {
-            Length = length;
-            return this;
-        }
-
-        public ColumnCommand Unlimited()
-        {
-            return WithLength(10000);
-        }
-    }
-
-    public class CreateColumnCommand : ColumnCommand
-    {
-        public CreateColumnCommand(string tableName, string name) : base(tableName, name)
-        {
             IsNotNull = false;
             IsUnique = false;
+            Isindex = false;
         }
+        public string ColumnName { get; private set; }
 
-        public bool IsUnique { get; protected set; }
+        public byte Scale { get; set; }
 
-        public bool IsNotNull { get; protected set; }
+        public byte Precision { get; set; }
 
-        public bool IsPrimaryKey { get; protected set; }
+        public DbType DbType { get; set; }
 
-        public bool IsIdentity { get; protected set; }
+        public object Default { get; set; }
 
-        public CreateColumnCommand PrimaryKey()
+        public int? Length { get; set; }
+
+        #region  CreateColumn
+        public bool IsUnique { get; set; }
+
+        public bool IsNotNull { get; set; }
+
+        public bool IsPrimaryKey { get; set; }
+
+        public bool IsIdentity { get; set; }
+
+        public bool Isindex { get; set; }
+        #endregion
+         
+        #region override object
+        public override bool Equals( object obj)
         {
-            IsPrimaryKey = true;
-            IsUnique = false;
-            return this;
+            if (!(obj is Column))
+            {
+                return false;
+            }
+            if (obj == null)
+            {
+                return false;
+            }
+            if (string.Compare(this.ColumnName, ((Column)obj).ColumnName, true) == 0)
+            {
+                return true;
+            }
+            return base.Equals(obj);
         }
 
-        public CreateColumnCommand Identity()
+        public static bool operator ==(Column obj1, Column obj2)
         {
-            IsIdentity = true;
-            IsUnique = false;
-            return this;
+            if (object.Equals(obj1, obj2) == true)
+            {
+                return true;
+            }
+            if (object.Equals(obj1, null) == true || object.Equals(obj2, null) == true)
+            {
+                return false;
+            }
+            return obj1.Equals(obj2);
         }
-
-        public CreateColumnCommand WithPrecision(byte precision)
+        public static bool operator !=(Column obj1, Column obj2)
         {
-            Precision = precision;
-            return this;
+            return !(obj1 == obj2);
         }
-
-        public CreateColumnCommand WithScale(byte scale)
+        public override int GetHashCode()
         {
-            Scale = scale;
-            return this;
+            if (string.IsNullOrEmpty(this.ColumnName))
+            {
+                return base.GetHashCode();
+            }
+            else
+            {
+                return this.ColumnName.ToLower().GetHashCode();
+            }
         }
-
-        public CreateColumnCommand NotNull()
+        #endregion
+        #region Clone
+        public Column DeepClone()
         {
-            IsNotNull = true;
-            return this;
+            var column = (Column)this.MemberwiseClone();
+            return column;
         }
-
-        public CreateColumnCommand Nullable()
-        {
-            IsNotNull = false;
-            return this;
-        }
-
-        public CreateColumnCommand Unique()
-        {
-            IsUnique = true;
-            IsPrimaryKey = false;
-            IsIdentity = false;
-            return this;
-        }
-
-        public CreateColumnCommand NotUnique()
-        {
-            IsUnique = false;
-            return this;
-        }
-
-        public new CreateColumnCommand WithLength(int? length)
-        {
-            base.WithLength(length);
-            return this;
-        }
-
-        public new CreateColumnCommand Unlimited()
-        {
-            return WithLength(10000);
-        }
-
-        public new CreateColumnCommand WithType(DbType dbType)
-        {
-            base.WithType(dbType);
-            return this;
-        }
-
-        public new CreateColumnCommand WithDefault(object @default)
-        {
-            base.WithDefault(@default);
-            return this;
-        }
+        #endregion
     }
 
-    public class AddColumnCommand : CreateColumnCommand
+    public static class ColumnExtensions
     {
-        public AddColumnCommand(string tableName, string name) : base(tableName, name)
+        public static Column WithType(this Column column, DbType dbType)
         {
-        }
-    }
-
-    public class AlterColumnCommand : ColumnCommand
-    {
-        public AlterColumnCommand(string tableName, string columnName)
-            : base(tableName, columnName)
-        {
+            column.DbType = dbType;
+            return column;
         }
 
-        public new AlterColumnCommand WithType(DbType dbType)
+        public static Column WithType(this Column column, DbType dbType, int? length)
         {
-            base.WithType(dbType);
-            return this;
+            column.WithType(dbType).WithLength(length);
+            return column;
         }
 
-        public AlterColumnCommand WithType(DbType dbType, int? length)
+        public static Column WithType(this Column column, DbType dbType, byte precision, byte scale)
         {
-            base.WithType(dbType).WithLength(length);
-            return this;
+            column.WithType(dbType);
+            column.Precision = precision;
+            column.Scale = scale;
+            return column;
         }
 
-        public AlterColumnCommand WithType(DbType dbType, byte precision, byte scale)
+        public static Column WithDefault(this Column column, object @default)
         {
-            base.WithType(dbType);
-            Precision = precision;
-            Scale = scale;
-            return this;
+            column.Default = @default;
+            return column;
         }
 
-        public new AlterColumnCommand WithLength(int? length)
+        public static Column WithLength(this Column column, int? length)
         {
-            base.WithLength(length);
-            return this;
+            column.Length = length;
+            return column;
+        }
+        public static Column Unlimited(this Column column)
+        {
+            return column.WithLength(10000);
         }
 
-        public new AlterColumnCommand Unlimited()
+        #region  CreateColumnCommand
+        public static Column PrimaryKey(this Column column)
         {
-            return WithLength(10000);
+            column.IsPrimaryKey = true;
+            column.IsUnique = false;
+            return column;
+        }
+        public static Column Identity(this Column column)
+        {
+            column.IsIdentity = true;
+            column.IsUnique = false;
+            return column;
         }
 
-    }
-
-    public class DropColumnCommand : ColumnCommand
-    { 
-        public DropColumnCommand(string tableName, string columnName)
-            : base(tableName, columnName)
+        public static Column WithPrecision(this Column column, byte precision)
         {
+            column.Precision = precision;
+            return column;
         }
+        public static Column WithScale(this Column column, byte scale)
+        {
+            column.Scale = scale;
+            return column;
+        }
+        public static Column NotNull(this Column column)
+        {
+            column.IsNotNull = true;
+            return column;
+        }
+
+        public static Column Nullable(this Column column)
+        {
+            column.IsNotNull = false;
+            return column;
+        }
+        public static Column Unique(this Column column)
+        {
+            column.IsUnique = true;
+            column.IsPrimaryKey = false;
+            column.IsIdentity = false;
+            return column;
+        }
+        public static Column NotUnique(this Column column)
+        {
+            column.IsUnique = false;
+            return column;
+        }
+
+        public static Column Index(this Column column)
+        {
+            column.Isindex = true;
+            return column;
+        }
+        public static Column NotIndex(this Column column)
+        {
+            column.Isindex = false;
+            return column;
+        }
+        #endregion
+
+
     }
 }
+     
+ 
