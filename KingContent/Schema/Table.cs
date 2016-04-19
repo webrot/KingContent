@@ -24,16 +24,24 @@ namespace KingContent.Schema
             SrcTable = srcTable;
         }
     }
-    public class TableSchema
+
+    public class ITableSchema
     {
         public string TableName { get; set; }
+        public List<Column> Columns { get; private set; }
 
-        public TableSchema(string tableName)
+        public ITableSchema(string tableName)
         {
             Columns = new List<Column>();
             TableName = tableName;
         }
-        public List<Column> Columns { get; private set; }
+    }
+
+    public class TableSchema : ITableSchema
+    {
+        public TableSchema(string tableName):base(tableName)
+        { 
+        }
 
         #region override object
         public static bool operator ==(TableSchema obj1, TableSchema obj2)
@@ -87,11 +95,9 @@ namespace KingContent.Schema
 
         public TableSchema DeepClone()
         {
-            var table = (TableSchema)this.MemberwiseClone();
+            var table = new TableSchema(this.TableName);
             if (this.Columns != null)
             {
-                table.Columns = new List<Column>();
-
                 foreach (var item in this.Columns)
                 {
                     table.Columns.Add(item.DeepClone());

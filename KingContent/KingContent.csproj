@@ -43,6 +43,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CallContext.cs" />
+    <Compile Include="DatabaseManager.cs" />
+    <Compile Include="DataProvider\DataProvider.cs" />
+    <Compile Include="DataProvider\TextContent.cs" />
+    <Compile Include="DataProvider\Session.cs" />
+    <Compile Include="DriverFactory\BaseDriver.cs" />
+    <Compile Include="DriverFactory\0DriverFactory.cs" />
+    <Compile Include="DriverFactory\DiskFileDriver.cs" />
+    <Compile Include="DriverFactory\SqlCeDriver.cs" />
+    <Compile Include="DriverFactory\SqliteDriver.cs" />
     <Compile Include="Schema\Database.cs" />
     <Compile Include="Form\ColumnValidation.cs" />
     <Compile Include="Form\SR.cs" />
@@ -53,9 +62,7 @@
     <Compile Include="Extension\StringExtensions.cs" />
     <Compile Include="TreeObject.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Data\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
