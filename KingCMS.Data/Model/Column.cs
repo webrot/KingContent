@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace KingContent.Schema
+namespace KingCMS.Data.Model
 {
+    // This project can output the Class library as a NuGet Package.
+    // To enable this option, right-click on the project and select the Properties menu item. In the Build tab select "Produce outputs on build".
     public class Column
     {
         public Column(string name)
@@ -40,9 +42,9 @@ namespace KingContent.Schema
 
         public bool Isindex { get; set; }
         #endregion
-         
+
         #region override object
-        public override bool Equals( object obj)
+        public override bool Equals(object obj)
         {
             if (!(obj is Column))
             {
@@ -311,5 +313,3 @@ namespace KingContent.Schema
         DateTimeOffset = 27
     }
 }
-     
- 
